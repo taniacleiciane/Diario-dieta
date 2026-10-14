@@ -1,0 +1,59 @@
+O repositório está vazio e ainda não tem um "ramo" (branch), por isso o upload foi bloqueado. A solução é criar **um arquivo primeiro**. Vamos aproveitar e criar logo o mais importante, a "receita" do app:
+
+**Passo 1: criar o arquivo da receita**
+1. Na caixa azul, clique em **creating a new file** (o primeiro link azul da frase "Get started by...").
+2. No campo do nome do arquivo (no topo, "Name your file..."), digite exatamente:
+   `.github/workflows/build-apk.yml`
+   Ao digitar cada `/`, o GitHub cria a pasta sozinho. É normal.
+3. Na área grande de texto, cole isto:
+
+```yaml
+name: Gerar APK
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Criar a parte Android do projeto
+        run: flutter create --platforms=android --org br.com.cleici --project-name lembrete_agua .
+
+      - name: Ajustar permissões e notificações
+        run: python3 tool/patch_android.py
+
+      - name: Baixar dependências
+        run: flutter pub get
+
+      - name: Compilar o APK
+        run: flutter build apk --release
+
+      - name: Disponibilizar o APK para download
+        uses: actions/upload-artifact@v4
+        with:
+          name: lembrete-agua-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+```
+
+4. Clique em **Commit changes...** (verde, no canto superior direito) e de novo em **Commit changes** na janelinha.
+
+**Passo 2: enviar o resto**
+Agora o link de upload vai funcionar:
+**https://github.com/taniacleiciane/Diario-dieta/upload/main**
+Arraste só os outros 4 itens: **`lib`, `tool`, `pubspec.yaml` e `README.md`**. A `.github` já foi criada no passo 1. Depois clique em **Commit changes**.
+
+**Observação:** depois do passo 1, a aba **Actions** vai mostrar uma tentativa com ❌ vermelho. **Ignore**, porque ela rodou antes de os outros arquivos chegarem. Depois do passo 2, uma nova tentativa começa sozinha, e essa é a que vale.
